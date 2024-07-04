@@ -1,53 +1,15 @@
-version: "3"
+version: "3.8"
+
 services:
-  server:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: nodejs-server
-    container_name: ${PROJECT_NAME}-server
-    restart: unless-stopped
-    env_file: .env
-    ports:
-      - "${SERVER_PORT}:3001"
-    volumes:
-      - .:/home/node/app
-      - node_modules:/home/node/app/node_modules
-    command: yarn dev
-    depends_on:
-      - db
-      - test-db
-
-  db:
-    image: postgres
-    container_name: ${PROJECT_NAME}-db
-    restart: unless-stopped
-    env_file: .env
+  mysql:
+    image: mysql:8.0.26
+    container_name: quivi_mysql
     environment:
-      - POSTGRES_USER=${DATABASE_USER}
-      - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
-      - POSTGRES_DB=${DATABASE_DB}
-      - PGDATA=/var/lib/postgresql/data/pgdata
-    ports:
-      - "${DATABASE_PORT}:5432"
+      MYSQL_ROOT_PASSWORD: ${DATABASE_PASSWORD}
+    network_mode: host
     volumes:
-      - pgdata:/var/lib/postgresql/data
-
-  test-db:
-    image: postgres
-    container_name: ${PROJECT_NAME}-test-db
-    env_file: .env
-    environment:
-      - POSTGRES_USER=${DATABASE_TEST_USER}
-      - POSTGRES_PASSWORD=${DATABASE_TEST_PASSWORD}
-      - POSTGRES_DB=${DATABASE_TEST_DB}
-    ports:
-      - "${DATABASE_TEST_PORT}:5432"
+      - mysql_data:/var/lib/mysql
+      - ./docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
 
 volumes:
-  pgdata:
-  node_modules:
-
-    # Documentação usada para a construção desse arquivo
-    # https://www.digitalocean.com/community/tutorials/containerizing-a-node-js-application-for-development-with-docker-compose-pt
-    # (principalmente o passo 4)
+  mysql_data:
